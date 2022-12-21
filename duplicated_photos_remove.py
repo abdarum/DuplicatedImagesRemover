@@ -314,6 +314,8 @@ class FilesManager:
         print(
             "\n\n***********************\n****   DUPLICATES  ****\n***********************")
         for item in self.directory_structure.iterate_files():
+            if item.file_extensions_is_ignored() or (not item.file_extensions_is_trusted()):
+                continue
             if item.file_in_multiple_directories():
                 print("Duplicate  - Filename: {}\nPaths".format(item.get_filename()))
                 pprint.pprint(item.get_file_paths_list())
