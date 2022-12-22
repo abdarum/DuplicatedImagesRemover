@@ -349,19 +349,19 @@ class FilesManager:
 
 
 class DuplicatesRemover(FilesManager):
-    def __init__(self, root_directory=None, skip_duplicates=True):
+    def __init__(self, root_directory=None, accept_duplicates=False):
         """       
         Parameters
         ----------
         root_directory : str
             path to root directory, where search should be executed
-        skip_duplicates : bool
-            True - skip delete files with multiple sources(duplicates)
-            False - delete all images(also duplicated files)
+        accept_duplicates : bool
+            False - skip delete files with multiple sources(duplicates)
+            True - delete all images(also duplicated files)
         """
         super(DuplicatesRemover, self).__init__(root_directory)
         self.delete_from_current_directory = []
-        self.delete_duplicates = not bool(skip_duplicates)
+        self.accept_duplicates = bool(accept_duplicates)
 
     def file_should_be_deleted(self, file_properties: DirectoryStructure.FileProperties, reference):
         """Return bool if file should be deleted"""
@@ -369,7 +369,7 @@ class DuplicatesRemover(FilesManager):
         # check if item is stored in reference DuplicatesRemover object
         if item.get_filename() in reference.get_directory_structure().get_stored_filenames():
             # check if file has duplicates or delete duplicated
-            if not item.file_in_multiple_directories() or self.delete_duplicates:
+            if not item.file_in_multiple_directories() or self.accept_duplicates:
                 if item.file_extensions_is_trusted():
                     return True
         return False
@@ -609,26 +609,26 @@ class TestDuplicatesRemover:
             'destination.duplicated_files.get_duplicates_filenames()')
         print('Processed duplicates at destination: {}'.format(d_duplicated_files))
 
-        skip_duplicates = data.get('skip_duplicates')
-        print('Skip duplicates: {}'.format(skip_duplicates))
+        accept_duplicates = data.get('accept_duplicates')
+        print('Accept duplicates: {}'.format(accept_duplicates))
         print('*****   Preset data summary   *****\n\n')
 
     def compare_execution_data_with_saved_preset(self, data):
         # destination.delete_from_current_directory list will be compared with saved list from attached data
         #   Files won't be deleted from pc
-        #   data = {'s': '\\\\online_pc\\IMGS', 'd': 'C:\\local_pc\\IMGS', 'delete_files': true, 'skip_duplicates': false, 'verbose': true, 'no_action': true, 'source.nested_files_list': [], 'destination.delete_from_current_directory': [], 'destination.nested_files_list': []}
+        #   data = {'s': '\\\\online_pc\\IMGS', 'd': 'C:\\local_pc\\IMGS', 'delete_files': true, 'accept_duplicates': true, 'verbose': true, 'no_action': true, 'source.nested_files_list': [], 'destination.delete_from_current_directory': [], 'destination.nested_files_list': []}
         self.print_saved_preset_data(data)
-        skip_duplicates = data.get('skip_duplicates')
+        accept_duplicates = data.get('accept_duplicates')
         s = data.get('s')
         d = data.get('d')
 
         # source
-        source = DuplicatesRemover(s, skip_duplicates=skip_duplicates)
+        source = DuplicatesRemover(s, accept_duplicates=accept_duplicates)
         source.nested_files_list = data['source.nested_files_list']
         source.scan_directory()
 
         # destination
-        destination = DuplicatesRemover(d, skip_duplicates=skip_duplicates)
+        destination = DuplicatesRemover(d, accept_duplicates=accept_duplicates)
         destination.nested_files_list = data['destination.nested_files_list']
         destination.scan_directory()
 
@@ -672,7 +672,7 @@ class TestDuplicatesRemover:
         self.compare_execution_data_with_saved_preset(loaded_dataset)
 
     def test_real_case_scenario_5(self):
-        # In directory there is 1 duplicates. No files to delete. skip_duplicates=True
+        # In directory there is 1 duplicates. No files to delete. accept_duplicates=True
         # Old implementation passed in 1.72s
         method_name = inspect.stack()[0][3]
         loaded_dataset = self.load_dataset_section(method_name)
@@ -700,14 +700,14 @@ class TestDuplicatesRemover:
         self.compare_execution_data_with_saved_preset(loaded_dataset)
 
     def test_real_case_scenario_9(self):
-        # In directory there is 9 duplicates. 751 files to delete. skip_duplicates=True
+        # In directory there is 9 duplicates. 751 files to delete. accept_duplicates=True
         # Old implementation passed in 923.46s (0:15:23)
         method_name = inspect.stack()[0][3]
         loaded_dataset = self.load_dataset_section(method_name)
         self.compare_execution_data_with_saved_preset(loaded_dataset)
 
     def test_real_case_scenario_10(self):
-        # In directory there is 9 duplicates. No files to delete. skip_duplicates=True
+        # In directory there is 9 duplicates. No files to delete. accept_duplicates=True
         # Old implementation passed in 3.47s
         method_name = inspect.stack()[0][3]
         loaded_dataset = self.load_dataset_section(method_name)
@@ -728,7 +728,7 @@ class TestDuplicatesRemover:
         self.compare_execution_data_with_saved_preset(loaded_dataset)
 
 
-def auto_scan_directories(sources, destinations, delete_files, skip_duplicates, verbose, no_action):
+def auto_scan_directories(sources, destinations, delete_files, accept_duplicates, verbose, no_action):
     SAVE_PROCESSING_DATA = False
     save_dict = {}
     for d in destinations:
@@ -737,12 +737,12 @@ def auto_scan_directories(sources, destinations, delete_files, skip_duplicates, 
             # Source
             if verbose == True:
                 print("Directory path: {}".format(s))
-            source = DuplicatesRemover(s, skip_duplicates=skip_duplicates)
+            source = DuplicatesRemover(s, accept_duplicates=accept_duplicates)
             source.scan_directory()
             # Destination
             if verbose == True:
                 print("Directory path: {}".format(d))
-            destination = DuplicatesRemover(d, skip_duplicates=skip_duplicates)
+            destination = DuplicatesRemover(d, accept_duplicates=accept_duplicates)
             destination.scan_directory()
 
             if verbose == True:
@@ -766,7 +766,7 @@ def auto_scan_directories(sources, destinations, delete_files, skip_duplicates, 
 
             if SAVE_PROCESSING_DATA:
                 curr_scan_dict.update({'s': s, 'd': d, 'delete_files': delete_files,
-                                      'skip_duplicates': skip_duplicates, 'verbose': verbose, 'no_action': no_action})
+                                      'accept_duplicates': accept_duplicates, 'verbose': verbose, 'no_action': no_action})
                 curr_scan_dict['source.nested_files_list'] = source.nested_files_list
                 curr_scan_dict['source.duplicated_files.get_duplicates_filenames()'] = source.duplicated_files.get_duplicates_filenames()
                 curr_scan_dict['destination.delete_from_current_directory'] = destination.delete_from_current_directory
@@ -783,15 +783,15 @@ def parse_and_execute_cli():
 
     # Add the arguments to the parser
     ap.add_argument("-p", "--preset", required=False, action="store_true",
-                    help="execute preset in code options and exit")
+                    help="execute hardcoded preset in code options and exit")
     ap.add_argument("-P", "--preset_path", required=False,
-                    help="path of preset config file - execute preset and exit")
+                    help="path to config file(json file as settings preset) - execute preset and exit")
     ap.add_argument("-s", "--source", required=False,
-                    help="path of source directory")
+                    help="path to source directory")
     ap.add_argument("-d", "--destination", required=False,
-                    help="path of destination directory")
-    ap.add_argument("-a", "--accept_duplicates", required=False, action="store_false",
-                    help="NO skip duplicates, by default duplicated files are skipped")
+                    help="path to destination directory")
+    ap.add_argument("-a", "--accept_duplicates", required=False, action="store_true",
+                    help="by default duplicated files are skipped(not deleted). If flag is enabled then duplicates will be also deleted")
     ap.add_argument("-r", "--delete_files", required=False, action="store_true",
                     help="delete files existing in source from destination dir, default: False")
     ap.add_argument("-n", "--no_action", required=False, action="store_true",
@@ -815,7 +815,6 @@ def parse_and_execute_cli():
         preset_config_path = args['preset_path'].strip()
         with open(preset_config_path, 'r') as f:
             data = json.load(f)
-            tmp_var2 = ''
             auto_scan_directories(**data)
         sys.exit(1)
 
@@ -825,12 +824,12 @@ def parse_and_execute_cli():
             sources=["\\\\networkpc\\image\\Camera", "C:\\image\\Camera"],
             destinations=["D:\\images"],
             delete_files=args['delete_files'],
-            skip_duplicates=args['accept_duplicates'],
+            accept_duplicates=args['accept_duplicates'],
             verbose=args['verbose'],
             no_action=args['no_action'])
         sys.exit(1)
 
-    if args['export_sorted_newest'] != None:
+    if args['export_sorted_newest']:
         # python.exe C:\GitHub\Python\duplicated_photos_remove.py -e -s C:\Kornel_Zdjecia\___Gallery_Gotowe_finalne\2020 -d C:\Kornel_Zdjecia\zz__inne_tmp\tmp_script
         if (args['source'] != None) and (args['destination'] != None):
             source_path = args['source']
@@ -855,7 +854,7 @@ def parse_and_execute_cli():
     if args['source'] != None:
         source_path = args['source']
         source = DuplicatesRemover(
-            source_path, skip_duplicates=args['accept_duplicates'])
+            source_path, accept_duplicates=args['accept_duplicates'])
         source.scan_directory()
         if args['verbose'] == True:
             print("\n\tSource\n")
@@ -866,7 +865,7 @@ def parse_and_execute_cli():
     if args['destination'] != None:
         destination_path = args['destination']
         destination = DuplicatesRemover(
-            destination_path, skip_duplicates=args['accept_duplicates'])
+            destination_path, accept_duplicates=args['accept_duplicates'])
         destination.scan_directory()
         if args['verbose'] == True:
             print("\n\tDestination\n")

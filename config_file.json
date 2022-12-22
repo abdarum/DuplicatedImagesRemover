@@ -15,7 +15,7 @@
         }
     ],
     "delete_files": true,
-    "skip_duplicates": false,
+    "accept_duplicates": false,
     "verbose": true,
     "no_action": false
 }

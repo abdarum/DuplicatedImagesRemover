@@ -2,9 +2,4 @@ Pillow
 tqdm
 json_logging
 pytest
-pprint
-argparse
-shutil
-ftplib
-inspect
 
