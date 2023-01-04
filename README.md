@@ -49,4 +49,45 @@ python <path_to_dir_with_script>/duplicated_photos_remove.py -P <path_to_setting
 Example JSON configuration file can be found in file `config_file.json`.
 
 #### Variables
-* 
+* sources:  
+  List of paths to source directories. Multiple paths are equivalent to multiple running script with `--source` argument from CLI using each value from list. Path types are described at [Paths](#path-types)
+* destinations:  
+  List of paths to destination directories. Multiple paths are equivalent to multiple running script with `--destination` argument from CLI using each value from list. Path types are described at [Paths](#path-types)
+* delete_files:  
+  Boolean equivalent to `--delete_files` parameter from [Command line interface - CLI](#command-line-interface---cli)
+* accept_duplicates:  
+  Boolean equivalent to `--accept_duplicates` parameter from [Command line interface - CLI](#command-line-interface---cli)
+* verbose:  
+  Boolean equivalent to `--verbose` parameter from [Command line interface - CLI](#command-line-interface---cli)
+* no_action:  
+  Boolean equivalent to `--no_action` parameter from [Command line interface - CLI](#command-line-interface---cli)
+#### Path types
+Windows paths are using `\` as separator(escape character for special characters as `\n`-newline or `\t`-tab). To set up JSON file correctly replace all `\` to `\\`.
+
+* Absolute path to directory:
+  * `"C:\\image\\Camera"` - path to: `"C:\image\Camera"`
+  * `"D:\\images"` - path to: `"D:\images"`
+* Path to network attached storage
+  * `"\\\\networkpc\\image\\Camera"` - path to: `"\\networkpc\image\Camera"` - `\\networkpc` as server and `image\Camera` as following path
+* FTP server(e.g. it can be setup at Android phone, so duplicated images can be deleted directly from phone or other device):
+  * Dictionary in following format:
+  * `"type": "ftp_server",`: this line should be unchanged for handling ftp sever
+  * `"url": "192.168.xxx.xxx",`: url to ftp server. It could be IP of device in local network e.g. `192.168.1.5` or `ftp_server_in_net.domain.com`
+  * `"port": 0,`: port used to communication with FTP server. Dependent on server setup
+  * `"username": "xxxx",`: username needed to access files
+  * `"password": "xxxx",`: password needed to access files
+  * `"cwd": "/Images/path"`: Path to directory where images are stored. Take into consideration it is a relative path of the server setup  
+     * Example:  
+  Android, files stored at `/storage/emulated/0/DCIM/Camera/landscapes` and server root dir is set to `/storage/emulated/0/DCIM`, then cwd value will be `/Camera/landscapes`
+```
+{
+  "type": "ftp_server",
+  "url": "192.168.xxx.xxx",
+  "port": 0,
+  "username": "xxxx",
+  "password": "xxxx",
+  "cwd": "/Images/path"
+}
+```
+
+
