@@ -9,6 +9,13 @@ Git is installed [Windows Installer](https://gitforwindows.org/)
 Python is installed (The Latest version should be fine) [Windows Installer](https://www.python.org/downloads/)
 
 ## Environment setup
+
+### Clone repository
+Open repo destination directory in shell([Windows tutorial](https://www.wikihow.com/Open-a-Folder-in-Cmd)) and use command below to clone repo into this directory
+```
+git clone https://github.com/abdarum/DuplicatedImagesRemover.git
+```
+
 ### Install needed packages
 Open directory in shell([Windows tutorial](https://www.wikihow.com/Open-a-Folder-in-Cmd)) and use command below to install needed packages
 ```
@@ -40,7 +47,7 @@ options:
                         destination paths have to be set
   -v, --verbose         explain what is being done
 ```
-### Run script based on JSON preset
+### Run script based on JSON preset (Recommended)
 To run script with configured settings please use command:
 ```
 python <path_to_dir_with_script>/duplicated_photos_remove.py -P <path_to_settings_json_file>
