@@ -53,21 +53,21 @@ To run script with configured settings please use command:
 python <path_to_dir_with_script>/duplicated_photos_remove.py -P <path_to_settings_json_file>
 ```
 
-Example JSON configuration file can be found in file `config_file.json`.
+Example JSON configuration file can be found in file [`config_file.json`](config_file.json).
 
 #### Variables
 * sources:  
-  List of paths to source directories. Multiple paths are equivalent to multiple running script with `--source` argument from CLI using each value from list. Path types are described at [Paths](#path-types)
+  List of paths to source directories. Multiple paths are equivalent to multiple running script with `--source` argument from [CLI](#command-line-interface---cli) using each value from list. Path types are described at [Paths](#path-types)
 * destinations:  
-  List of paths to destination directories. Multiple paths are equivalent to multiple running script with `--destination` argument from CLI using each value from list. Path types are described at [Paths](#path-types)
+  List of paths to destination directories. Multiple paths are equivalent to multiple running script with `--destination` argument from [CLI](#command-line-interface---cli) using each value from list. Path types are described at [Paths](#path-types)
 * delete_files:  
-  Boolean equivalent to `--delete_files` parameter from [Command line interface - CLI](#command-line-interface---cli)
+  Boolean equivalent to `--delete_files` parameter from [CLI](#command-line-interface---cli)
 * accept_duplicates:  
-  Boolean equivalent to `--accept_duplicates` parameter from [Command line interface - CLI](#command-line-interface---cli)
+  Boolean equivalent to `--accept_duplicates` parameter from [CLI](#command-line-interface---cli)
 * verbose:  
-  Boolean equivalent to `--verbose` parameter from [Command line interface - CLI](#command-line-interface---cli)
+  Boolean equivalent to `--verbose` parameter from [CLI](#command-line-interface---cli)
 * no_action:  
-  Boolean equivalent to `--no_action` parameter from [Command line interface - CLI](#command-line-interface---cli)
+  Boolean equivalent to `--no_action` parameter from [CLI](#command-line-interface---cli)
 #### Path types
 Windows paths are using `\` as separator(escape character for special characters as `\n`-newline or `\t`-tab). To set up JSON file correctly replace all `\` to `\\`.
 
