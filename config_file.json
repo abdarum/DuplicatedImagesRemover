@@ -17,5 +17,6 @@
     "delete_files": true,
     "accept_duplicates": false,
     "verbose": true,
-    "no_action": false
+    "no_action": false,
+    "delete_empty_dirs": false
 }

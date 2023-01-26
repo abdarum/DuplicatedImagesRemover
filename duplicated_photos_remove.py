@@ -1,4 +1,5 @@
 import os
+import pathlib
 import pprint
 import sys
 import argparse
@@ -174,12 +175,18 @@ class DirTreeManipulator:
     def get_nested_file_paths(self):
         return None
 
-    def delete_files_list(self, files_list, tqdm_desc, log_desc):
+    def delete_files_list(self, files_list, tqdm_desc, log_desc, delete_empty_dirs):
         for f in tqdm.tqdm(files_list, desc=tqdm_desc):
             self.delete_file(f)
             logger.info(log_desc.format(f))
+            if delete_empty_dirs:
+                self.delete_empty_dir(f)
 
     def delete_file(self, file_path):
+        pass
+
+    def delete_empty_dir(self, file_path):
+        """Delete directory of file_path if it's empty"""
         pass
 
     def get_root_path(self):
@@ -199,6 +206,13 @@ class DirTreeManipulatorOs(DirTreeManipulator):
 
     def delete_file(self, file_path):
         os.remove(file_path)
+
+    def delete_empty_dir(self, file_path):
+        """Delete directory of file_path if it's empty"""
+        dir_path = pathlib.Path(file_path).parent
+        items_list = os.listdir(dir_path.resolve()) # list dir items
+        if len(items_list) == 0: # remove dir
+            dir_path.rmdir()
 
     def get_root_path(self):
         if self.is_config_valid():
@@ -226,14 +240,34 @@ class DirTreeManipulatorFtp(DirTreeManipulator):
         nested_file_paths = [ftp_prefix + item for item in nested_file_paths]
         return nested_file_paths
 
-    def delete_files_list(self, files_list, tqdm_desc, log_desc):
+    def delete_files_list(self, files_list, tqdm_desc, log_desc, delete_empty_dirs):
         self._login()
-        super().delete_files_list(files_list, tqdm_desc, log_desc)
+        super().delete_files_list(files_list, tqdm_desc, log_desc, delete_empty_dirs)
         self._close()
 
     def delete_file(self, file_path):
         del_file = file_path.replace(self._get_ftp_path_prefix(), '')
         self._get_ftp().delete(del_file)
+
+    def delete_empty_dir(self, file_path):
+        """Delete directory of file_path if it's empty"""
+        if self._get_ftp() is None:
+            return None
+
+        dir_path = pathlib.Path(file_path.replace(self._get_ftp_path_prefix(), '')).parent
+        dir_name = dir_path.name
+        dir_path_cwd = os.path.normpath(dir_path)
+
+        # list dir items
+        self._get_ftp().cwd(dir_path_cwd)
+        items_list = list(self._get_ftp().mlsd())
+
+        # remove dir
+        if len(items_list) == 0:
+            dir_path = dir_path.parent
+            dir_path_cwd = os.path.normpath(dir_path)
+            self._get_ftp().cwd(dir_path_cwd)
+            self._get_ftp().rmd(dir_name)
 
     def get_root_path(self):
         return self._get_ftp_path_prefix() + self._get_root_path()
@@ -384,11 +418,11 @@ class DuplicatesRemover(FilesManager):
                 logger.info(
                     "prepare_to_delete_existing_files - file('s) will be deleted: {}".format(item.get_file_paths_list()))
 
-    def delete_prepared_files(self):
+    def delete_prepared_files(self, delete_empty_dirs):
         log_desc = 'delete_prepared_files - file was deleted: {}'
         tqdm_desc = 'Delete duplicates'
         self.root_directory.delete_files_list(
-            self.delete_from_current_directory, tqdm_desc, log_desc)
+            self.delete_from_current_directory, tqdm_desc, log_desc, delete_empty_dirs)
         print("\n\n*************************\n**** DELETE COMPLETE ****\n*************************")
 
     def print_prepared_to_delete(self):
@@ -728,7 +762,7 @@ class TestDuplicatesRemover:
         self.compare_execution_data_with_saved_preset(loaded_dataset)
 
 
-def auto_scan_directories(sources, destinations, delete_files, accept_duplicates, verbose, no_action):
+def auto_scan_directories(sources, destinations, delete_files, accept_duplicates, verbose, no_action, delete_empty_dirs):
     SAVE_PROCESSING_DATA = False
     save_dict = {}
     for d in destinations:
@@ -762,7 +796,7 @@ def auto_scan_directories(sources, destinations, delete_files, accept_duplicates
                 destination.prepare_to_delete_existing_files(source)
                 if verbose == True:
                     destination.print_prepared_to_delete()
-                destination.delete_prepared_files()
+                destination.delete_prepared_files(delete_empty_dirs)
 
             if SAVE_PROCESSING_DATA:
                 curr_scan_dict.update({'s': s, 'd': d, 'delete_files': delete_files,
@@ -794,6 +828,8 @@ def parse_and_execute_cli():
                     help="by default duplicated files are skipped(not deleted). If flag is enabled then duplicates will be also deleted")
     ap.add_argument("-r", "--delete_files", required=False, action="store_true",
                     help="delete files existing in source from destination dir, default: False")
+    ap.add_argument("-R", "--delete_empty_dirs", required=False, action="store_true",
+                    help="delete directory if all files have been deleted from it, default: False")
     ap.add_argument("-n", "--no_action", required=False, action="store_true",
                     help="explain what would be deleted, but there is no action in file system, default: False")
     ap.add_argument("-e", "--export_sorted_newest", required=False, action="store_true",
@@ -826,7 +862,8 @@ def parse_and_execute_cli():
             delete_files=args['delete_files'],
             accept_duplicates=args['accept_duplicates'],
             verbose=args['verbose'],
-            no_action=args['no_action'])
+            no_action=args['no_action'],
+            delete_empty_dirs=args['delete_empty_dirs'])
         sys.exit(1)
 
     if args['export_sorted_newest']:

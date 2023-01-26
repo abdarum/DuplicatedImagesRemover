@@ -41,6 +41,8 @@ options:
                         by default duplicated files are skipped(not deleted). If flag is enabled then duplicates  
                         will be also deleted
   -r, --delete_files    delete files existing in source from destination dir, default: False
+  -R, --delete_empty_dirs
+                        delete directory if all files have been deleted from it, default: False
   -n, --no_action       explain what would be deleted, but there is no action in file system, default: False      
   -e, --export_sorted_newest
                         export sorted files from source to destination directory. Note: the source and the        
@@ -68,6 +70,8 @@ Example JSON configuration file can be found in file [`config_file.json`](config
   Boolean equivalent to `--verbose` parameter from [CLI](#command-line-interface---cli)
 * no_action:  
   Boolean equivalent to `--no_action` parameter from [CLI](#command-line-interface---cli)
+* delete_empty_dirs:
+  Boolean equivalent to `--delete_empty_dirs` parameter from [CLI](#command-line-interface---cli)
 #### Path types
 Windows paths are using `\` as separator(escape character for special characters as `\n`-newline or `\t`-tab). To set up JSON file correctly replace all `\` to `\\`.
 
