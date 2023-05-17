@@ -259,26 +259,39 @@ class DirTreeManipulatorFtp(DirTreeManipulator):
         dir_path_cwd = os.path.normpath(dir_path)
 
         # list dir items
-        self._get_ftp().cwd(dir_path_cwd)
+        self._cwd(dir_path_cwd)
         items_list = list(self._get_ftp().mlsd())
 
         # remove dir
         if len(items_list) == 0:
             dir_path = dir_path.parent
             dir_path_cwd = os.path.normpath(dir_path)
-            self._get_ftp().cwd(dir_path_cwd)
+            self._cwd(dir_path_cwd)
             self._get_ftp().rmd(dir_name)
 
     def get_root_path(self):
         return self._get_ftp_path_prefix() + self._get_root_path()
+
+    def _cwd(self, root_path):
+        try:
+            self._get_ftp().cwd(root_path)
+        except ftplib.error_perm as e:
+            print('\n\n')
+            print('-----------------------')
+            print('Error: requested path probably doesn\'t exists.')
+            print('Requested path: {}\n'.format(root_path))
+            print('Current directory listing:', flush=True)
+            self._get_ftp().dir()
+            print('-----------------------', flush=True)
+            print('\n\n', flush=True)
+            raise
 
     def list_dir_recursive(self, root_path):
         if self._get_ftp() is None:
             return None
 
         root_path = os.path.normpath(root_path)
-        self._get_ftp().cwd(root_path)
-
+        self._cwd(root_path)
         file_paths = []
         for name, facts in self._get_ftp().mlsd():
             if facts.get('type') == 'dir':
@@ -291,8 +304,30 @@ class DirTreeManipulatorFtp(DirTreeManipulator):
 
     def _login(self):
         self._ftp = ftplib.FTP()
-        self._ftp.connect(self._get_ftp_url(), self._get_ftp_port())
-        self._ftp.login(self._get_ftp_username(), self._get_ftp_password())
+        try:
+            self._ftp.connect(self._get_ftp_url(), self._get_ftp_port())
+        except ConnectionRefusedError as e:
+            print('\n\n')
+            print('-----------------------')
+            print('Error: FTP server can not be reached')
+            print('Please check FTP server\'s URL(IP) or port\n')
+            print('Used data:\n\tURL(IP): {}\n\tport:    {}'.format(
+                self._get_ftp_url(), self._get_ftp_port()))
+            print('-----------------------')
+            print('\n\n', flush=True)
+            raise
+        try:
+            self._ftp.login(self._get_ftp_username(), self._get_ftp_password())
+        except ftplib.error_perm as e:
+            print('\n\n')
+            print('-----------------------')
+            print('Error: Authentication FAILED.')
+            print('Username or password doesn\'t match server users!\n')
+            print('Used data:\n\tUsername: {}\n\tPassword: {}'.format(
+                self._get_ftp_username(), self._get_ftp_password()))
+            print('-----------------------')
+            print('\n\n', flush=True)
+            raise
 
     def _close(self):
         self._ftp.close()
