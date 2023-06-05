@@ -247,7 +247,14 @@ class DirTreeManipulatorFtp(DirTreeManipulator):
 
     def delete_file(self, file_path):
         del_file = file_path.replace(self._get_ftp_path_prefix(), '')
-        self._get_ftp().delete(del_file)
+        del_file = del_file.replace('\\', '/ ')
+        try:
+            self._get_ftp().delete(del_file)
+        except ftplib.error_temp as e:
+            print('\nError: Can not delete file: {}'.format(del_file), flush=True)
+            print('Current path: {}'.format(self._get_ftp().pwd()), flush=True)
+            print('Error description: {}'.format(str(e)), flush=True)
+
 
     def delete_empty_dir(self, file_path):
         """Delete directory of file_path if it's empty"""
@@ -273,6 +280,7 @@ class DirTreeManipulatorFtp(DirTreeManipulator):
         return self._get_ftp_path_prefix() + self._get_root_path()
 
     def _cwd(self, root_path):
+        root_path = root_path.replace('\\', '/')
         try:
             self._get_ftp().cwd(root_path)
         except ftplib.error_perm as e:
@@ -280,6 +288,7 @@ class DirTreeManipulatorFtp(DirTreeManipulator):
             print('-----------------------')
             print('Error: requested path probably doesn\'t exists.')
             print('Requested path: {}\n'.format(root_path))
+            print('Current path: {}'.format(self._get_ftp().pwd()), flush=True)
             print('Current directory listing:', flush=True)
             self._get_ftp().dir()
             print('-----------------------', flush=True)
