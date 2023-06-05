@@ -247,7 +247,7 @@ class DirTreeManipulatorFtp(DirTreeManipulator):
 
     def delete_file(self, file_path):
         del_file = file_path.replace(self._get_ftp_path_prefix(), '')
-        del_file = del_file.replace('\\', '/ ')
+        del_file = del_file.replace('\\', '/')
         try:
             self._get_ftp().delete(del_file)
         except ftplib.error_temp as e:
