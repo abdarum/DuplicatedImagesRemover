@@ -1,0 +1,6 @@
+FROM python:3-alpine3.15
+WORKDIR /app
+COPY ./src /app
+RUN pip install -r pip_requirements.txt
+EXPOSE 3000
+CMD python ./index.py

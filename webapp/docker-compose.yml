@@ -1,0 +1,15 @@
+version: "2.1"
+services:
+  duplicated_photos_remove:
+    image: abdarum/duplicated_photos_remove_poc
+    container_name: duplicated_photos_remove_poc
+    hostname: duplicated_photos_remove
+    ports:
+      - "3000:3000"
+    environment:
+      - TZ=Europe/Warsaw
+      - PUID=1000
+      - PGID=1000
+    restart: unless-stopped
+    # volumes:
+    #   - myapp:/home/node/app   
