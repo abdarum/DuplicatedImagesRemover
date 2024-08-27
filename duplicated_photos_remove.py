@@ -18,7 +18,7 @@ import inspect
 
 EXPORT_EXTENSIONS = ['.jpg', '.png', '.jpeg']
 EXPORT_EXCLUDE_DIR = ['wszystkie', 'all']
-TRUSTED_EXTENSIONS = ['.jpg', '.png', '.jpeg', '.mp4', '.webp']
+TRUSTED_EXTENSIONS = ['.jpg', '.png', '.jpeg', '.mp4', '.webp', '.mov',]
 IGNORED_EXTENSIONS = ['.txt']
 
 file_datestamp_format = '%Y%m%d_%H%M%S'
